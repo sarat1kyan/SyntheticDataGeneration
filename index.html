@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetic Data Generation | For Computer Vision</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #08750d;
+            --primary-light: #0fa614;
+            --primary-dark: #054508;
+            --secondary: #00ff0d;
+            --dark: #000;
+            --darker: #000;
+            --light: #fff;
+            --card-bg: rgba(0, 0, 0, 0.7);
+            --card-border: rgba(0, 255, 13, 0.2);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-tertiary: rgba(255, 255, 255, 0.65);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+            background-attachment: fixed;
+            scroll-behavior: smooth;
+            font-weight: 400;
+            letter-spacing: -0.011em;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Header & Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 25px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        
+        .logo i {
+            color: var(--primary-light);
+            font-size: 1.8rem;
+        }
+        
+        .nav-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 1100;
+        }
+        
+        .nav-toggle .bar {
+            width: 26px;
+            height: 3px;
+            background: var(--primary-light);
+            margin: 4px 0;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+        
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 1rem;
+            position: relative;
+            transition: color 0.3s ease;
+            letter-spacing: 0.01em;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+        
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--primary-light);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+        
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 10%;
+        }
+        
+        .hero-bg-video {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .hero > *:not(.hero-bg-video) {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 200;
+            margin-bottom: 30px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            line-height: 1;
+            letter-spacing: -0.05em;
+        }
+        
+        .hero .tagline {
+            font-size: 1.8rem;
+            max-width: 800px;
+            margin-bottom: 35px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+            font-style: italic;
+            letter-spacing: 0.02em;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 800px;
+            margin-bottom: 50px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.7;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+        }
+        
+        /* Sections */
+        .section {
+            position: relative;
+            padding: 120px 10%;
+            margin: 0;
+            border: none;
+            box-shadow: none;
+            background: none;
+        }
+        .section.section-1 {
+            background: url('./final/new_batch.mp4') no-repeat center center/cover;
+        }
+        /* Background pattern for sections */
+        .section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(8, 117, 13, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(8, 117, 13, 0.05) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .section > * { position: relative; z-index: 1; }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 100px;
+            position: relative;
+        }
+        
+        .section-title h2 {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+        }
+        
+        .section-title .divider {
+            height: 2px;
+            width: 80px;
+            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+            margin: 30px auto;
+            border-radius: 2px;
+        }
+        
+        .section-title p {
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.35rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+        }
+        
+        /* Content Text Styling */
+        .content-text {
+            max-width: 800px;
+            margin: 0 auto 60px;
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+        
+        .content-text p {
+            margin-bottom: 28px;
+            letter-spacing: 0.01em;
+        }
+        
+        .content-text strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .highlight-text {
+            color: var(--primary-light);
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+        
+        /* Large content sections without boxes */
+        .content-section {
+            max-width: 920px;
+            margin: 80px auto;
+            padding: 0 20px;
+        }
+        
+        .content-section h3 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 35px;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        
+        .content-section p {
+            font-size: 1.2rem;
+            line-height: 1.85;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+        }
+        
+        .content-section p:first-of-type {
+            font-size: 1.35rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+        
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            margin-top: 80px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            padding: 45px 35px;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary-light), transparent);
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            border-radius: 16px;
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        
+        .card:hover::before {
+            opacity: 0.1;
+        }
+        
+        .card h3 {
+            font-size: 1.75rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        
+        .card p, .card li {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.75;
+            font-weight: 300;
+        }
+        
+        .card ul {
+            margin-top: 20px;
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .card li {
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+        }
+        
+        .card li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-light);
+        }
+        
+        .card i {
+            font-size: 2.5rem;
+            color: var(--primary-light);
+            margin-bottom: 30px;
+            display: block;
+            opacity: 0.8;
+        }
+        
+        /* Large Content Card */
+        .content-card {
+            background: rgba(10, 30, 10, 0.85);
+            border-radius: 25px;
+            padding: 50px 40px;
+            margin: 40px auto;
+            max-width: 1000px;
+            border: 2px solid var(--card-border);
+            box-shadow: 0 15px 40px rgba(0,255,13,0.15);
+        }
+        
+        .content-card h3 {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: var(--primary-light);
+        }
+        
+        .content-card p {
+            font-size: 1.15rem;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+        
+        /* Team Section */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px 32px;
+            margin-top: 80px;
+            justify-items: center;
+        }
+        @media (max-width: 900px) {
+            .team-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .team-member {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            max-width: 320px;
+            width: 100%;
+        }
+        
+        .team-member:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .team-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 25px;
+            display: block;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .team-member:hover .team-photo {
+            border-color: var(--primary-light);
+        }
+        
+        .team-member h4 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .team-member .role {
+            font-size: 1.1rem;
+            color: var(--primary-light);
+            font-weight: 400;
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+        }
+        
+        .team-member .expertise {
+            font-size: 1rem;
+            color: var(--text-tertiary);
+            font-weight: 300;
+            margin-bottom: 0;
+        }
+        
+        /* Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 60px auto;
+            max-width: 1000px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(5px);
+            transition: var(--transition);
+        }
+        
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .stat-value {
+            font-size: 3.5rem;
+            font-weight: 300;
+            color: var(--primary-light);
+            margin-bottom: 15px;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.04em;
+        }
+        
+        .stat-label {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        
+        .stat-detail {
+            font-size: 1rem;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 16px 45px;
+            background: transparent;
+            color: var(--primary-light);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-light);
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn:hover {
+            background: var(--primary-light);
+            color: #000;
+            transform: translateY(-2px);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-light);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+        
+        .btn:hover::before {
+            left: 0;
+        }
+        
+        /* Footer */
+        footer {
+            background: rgba(6, 10, 3, 0.95);
+            padding: 70px 10% 40px;
+            text-align: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .footer-logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: none !important;
+            color: #fff !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .footer-tagline {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+        
+        .contact-btn {
+            margin: 40px 0;
+        }
+        
+        .copyright {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+        }
+        
+        /* Animations */
+        .animate-in {
+            opacity: 0;
+            transform: translateY(60px) scale(0.95) skewY(2deg);
+            filter: blur(6px);
+            transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1), filter 1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        
+        .animate-in.appear {
+            opacity: 1;
+            transform: translateY(0) scale(1) skewY(0);
+            filter: blur(0);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2.8rem;
+            }
+            
+            .nav-links {
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: row;
+                padding: 12px 5%;
+            }
+            .nav-toggle {
+                display: flex;
+            }
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100vw;
+                background: rgba(10, 10, 10, 0.98);
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0;
+                padding: 0 0 20px 0;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+                display: none;
+                z-index: 1001;
+            }
+            .nav-links.open {
+                display: flex;
+            }
+            .nav-links a {
+                width: 100%;
+                padding: 18px 24px;
+                font-size: 1.15rem;
+                border-bottom: 1px solid rgba(255,255,255,0.07);
+            }
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            
+            .hero .tagline {
+                font-size: 1.5rem;
+            }
+            
+            .section {
+                padding: 80px 5%;
+            }
+            
+            .section-title h2 {
+                font-size: 2.3rem;
+            }
+        }
+        
+        .slider-container {
+            max-width: 1200px;
+            height: 70vh;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .slider-track {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            height: 100%;
+            will-change: transform;
+        }
+        .slider-image {
+            width: 100%;
+            height: 65vh;
+            max-width: 1200px;
+            object-fit: contain;
+            flex: 0 0 33.3333%; /* Show 3 images at once */
+            display: block;
+            margin: 0 auto;
+            user-select: none;
+            pointer-events: none;
+        }
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            color: var(--primary-light);
+            cursor: pointer;
+            padding: 0 20px;
+            transition: color 0.2s, opacity 0.2s;
+            opacity: 0.7;
+        }
+        .slider-arrow:hover { opacity: 1; }
+        .slider-arrow-left { left: 0; }
+        .slider-arrow-right { right: 0; }
+        .slider-arrow:active { color: var(--primary-dark); }
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        .slider-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .slider-dot:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .slider-dot.active {
+            background: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+        
+        /* Special emphasis box */
+        .emphasis-box {
+            background: rgba(8, 117, 13, 0.15);
+            border-left: 4px solid var(--primary);
+            padding: 25px 30px;
+            margin: 30px 0;
+            border-radius: 10px;
+        }
+        
+        .emphasis-box p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin: 0;
+        }
+        
+        /* List styling improvements */
+        .styled-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 20px;
+        }
+        
+        .styled-list li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        .styled-list li:before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: var(--primary-light);
+            font-size: 0.8rem;
+        }
+        
+        /* Next Steps Section: 3 by 3 grid */
+        #next .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 80px;
+        }
+        @media (max-width: 900px) {
+            #next .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            #next .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Add to CSS for .video-card-section and .video-card for better design */
+        .video-card-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 60px 0 100px 0;
+        }
+        .video-card {
+            background: rgba(10,30,10,0.85);
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(0,255,13,0.13);
+            padding: 32px 32px 24px 32px;
+            max-width: 720px;
+            width: 100%;
+            position: relative;
+        }
+        @media (max-width: 800px) {
+            .video-card { padding: 12px 4px 12px 4px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-cube"></i>
+            <span>SYNTHETIC<span style="color: var(--primary-light);">DATA</span></span>
+        </div>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        <div class="nav-links">
+            <a href="#intro">Intro</a>
+            <a href="#problem">Problem</a>
+            <a href="#solution">Solution</a>
+            <a href="#vision">Vision</a>
+            <a href="#team">Team</a>
+            <a href="#curious">Our Curiosity</a>
+            <a href="#next">Next Steps</a>
+        </div>
+    </header>
+    
+    <section class="hero section section-1">
+        <video class="section-bg-video" autoplay loop muted playsinline poster="./final/new_batch.jpg" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-2;transform: scale(1.08) translate(-40px, -20px);"><source src="./final/new_batch.mp4" type="video/mp4"></video>
+        <h1>SYNTHETIC DATA</h1>
+        <div class="hero-underline"></div>
+        <h1>GENERATION</h1>
+        <div class="tagline">"Great models need great data"</div>
+        <p>We're a focused team building hyperrealistic datasets using synthetic 3D scenes with Blender. Our scenes are automatically annotated, quick to generate, and easy to modify.</p>
+        <a href="#solution" class="btn">What we've built within 3 weeks</a>
+    </section>
+    
+    
+    <section id="intro" class="section">
+        <div class="section-title">
+            <h2>Introduction</h2>
+            <div class="divider"></div>
+            <p>Our Advantages</p>
+        </div>
+        
+        <div class="card-grid">
+            <div class="card animate-in">
+                <i class="fas fa-bolt"></i>
+                <h3>Flexible & Fast</h3>
+                <p>Generate diverse datasets quickly with full control over parameters and conditions.</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-globe"></i>
+                <h3>Diverse Environments</h3>
+                <p>From office scenes to industrial settings to natural outdoor environments like forests, mountains, and disaster zones.</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Exceptional Edge Cases</h3>
+                <p>Easily includes rare edge cases: e.g., faulty hardware, industrial anomalies, damaged or unexpected objects.</p>
+            </div>
+        </div>
+        
+        <div class="emphasis-box animate-in">
+            <p>We are deeply passionate about the tech of realistic simulation. We believe these technologies will become an inseparable part of the progress and innovation. We're not pitching a product. Instead, we'd <span class="highlight-text">greatly appreciate mentorship and a conversation.</span> Your vision with Omniverse inspires us, and we'd be honored to show you what we've achieved in just a few weeks, share our ideas, and listen to your thoughts.</p>
+        </div>
+    </section>
+    
+    <section id="problem" class="section">
+        <div class="section-title">
+            <h2>The Problem</h2>
+            <div class="divider"></div>
+        </div>
+        
+        <div class="content-section animate-in">
+            <h3>Creating custom datasets for niche computer vision tasks is slow, inefficient, and sometimes impossible due to lack of data.</h3>
+            <p>This is especially true when the objects or situations you care about don't exist in public datasets or the internet in general. Taking photos is hard when the subject is rare, private, or doesn't exist in the real world. Annotation makes it worse: teams still label images manually or outsource it, which is slow and doesn't scale.</p>
+            
+            <p><span class="highlight-text">We ran into this problem while building the object detection system for <b>military equipment</b>.</span> We couldn't find real images, and even if we could - annotating the images was extremely slow for the circumstances. That's what pushed us to build something better.</p>
+        </div>
+        
+    </section>
+    
+    <section id="solution" class="section">
+        <div class="section-title">
+            <h2>Solution - What We've Built within 3 weeks</h2>
+            <div class="divider"></div>
+        </div>
+        
+        <div class="content-section animate-in">
+            <p>We generate high-quality synthetic datasets automatically using 3D models. The system takes in any 3D asset and <span class="highlight-text">outputs labeled images with bounding boxes - ready for training</span> in frameworks like YOLO or any other computer vision model. The system generates Bounding Boxes as well as alpha Masks to be used in both Object Detection and Segmentation.</p>
+            
+            <p>Scenes are rendered with high visual realism, including detailed lighting, environmental conditions, materials, and camera angles. Everything is randomized to maximize generated dataset diversity.</p>
+            
+            <p><strong>Unlike generative models, our approach is fast, controllable, and cheap.</strong> The user uploads one or more 3D models, selects a few parameters such as the scale of the object, and we handle the rest - no manual labeling, no expensive compute. It takes minutes instead of days, and works even when the real data doesn't exist.</p>
+        </div>
+        
+        <div class="section-title" style="margin-top: 120px; margin-bottom: 60px;">
+            <h3 style="font-size: 2.8rem; font-weight: 300; color: var(--primary-light);">Current Speed</h3>
+            <p style="font-size: 1.2rem;">Using a single <span class="highlight-text">RTX 4060 Ti GPU</span></p>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-card animate-in">
+                <div class="stat-value">2000</div>
+                <div class="stat-label">Tank images in 12h</div>
+                <div class="stat-detail">~3 images/min, ~40 3D models of tanks used, objects regeneration once in 10 images</div>
+            </div>
+            <div class="stat-card animate-in">
+                <div class="stat-value">1200</div>
+                <div class="stat-label">Car images in 12h</div>
+                <div class="stat-detail">~1.7 images/min, ~50 3D models of cars used, objects regeneration once in 10 images</div>
+            </div>
+            <div class="stat-card animate-in">
+                <div class="stat-value">150</div>
+                <div class="stat-label">Car images in 28m</div>
+                <div class="stat-detail">~5 images/min, 1 3D model of a car used, objects regeneration once in 10 images</div>
+            </div>
+        </div>
+        
+        <h3 style="font-size: 2.2rem; text-align: center; margin: 100px 0 60px; font-weight: 300; color: var(--text-primary);">Current Capabilities</h3>
+        
+        <div class="card-grid">
+            <div class="card animate-in">
+                <i class="fas fa-cogs"></i>
+                <h3>Automated Rendering</h3>
+                <p>Using Blender and Python for efficient, high-quality rendering of 3D models in diverse environments.</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-random"></i>
+                <h3>Maximum Randomization</h3>
+                <p>The tool randomizes the environment, lighting, materials, the camera angle and properties, foliage, debris and other parameters and gives the user control over the amount of randomization for tweaking</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-robot"></i>
+                <h3>Automated Annotations</h3>
+                <p>Processed by Blender at High-Speed with zero human error:
+                <ul style="margin-top: 15px; list-style: none; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Bounding boxes</li>
+                    <li>Semantic & Instance segmentation masks</li>
+                </ul>
+                </p>
+            </div>
+        </div>
+        
+        <div class="video-card-section animate-in" style="display: flex; justify-content: center; align-items: center; margin: 60px 0 100px 0;">
+            <div class="video-card" style="background: rgba(10,30,10,0.85); border-radius: 24px; box-shadow: 0 8px 40px rgba(0,255,13,0.13); padding: 32px 32px 24px 32px; max-width: 720px; width: 100%; position: relative;">
+                <div style="position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 32px rgba(0,0,0,0.25);">
+                    <video id="demo-video" src="./final/new_batch.mp4" poster="./final/new_batch.jpg" controls style="width: 100%; height: auto; display: block; border-radius: 16px; background: #000;"></video>
+                    <button id="play-btn" onclick="document.getElementById('demo-video').play(); this.style.display='none';" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(8,117,13,0.85); border: none; border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 2px 12px rgba(0,0,0,0.25); transition: background 0.2s;"><i class="fas fa-play" style="color: #fff; font-size: 2.2rem; margin-left: 6px;"></i></button>
+                </div>
+                <div style="margin-top: 22px; text-align: center;">
+                    <span style="font-size: 1.18rem; color: var(--primary-light); font-weight: 500; letter-spacing: 0.01em;">Demo: Hyperrealistic Synthetic Data Generation</span>
+                    <p style="color: var(--text-secondary); font-size: 1.05rem; margin-top: 8px;">A short showcase of our automated 3D scene rendering and annotation pipeline.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 100px;">
+            <h3 style="font-size: 2rem; text-align: center; margin-bottom: 50px; font-weight: 300; color: var(--text-primary);">Our Modular Approach</h3>
+            <ul class="styled-list">
+                <li>Quick generation of clean and structured scenes</li>
+                <li>Simulation of rare edge-case conditions, faults, anomalies, weird angles and situations</li>
+                <li>Easy adaptation of datasets for different domains (e.g., data centers, industrial sites, robotics, open nature, forests)</li>
+            </ul>
+            
+            <div class="emphasis-box">
+                <p>We used Blender because it let us move fast and build momentum. We're comfortable in switching tools, and our goal is to create the most impact using what we have.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Render Slider Section -->
+    <section class="section section-slider" style="background: #0a0a0a; min-height: auto; padding: 100px 10%;">
+        <div class="section-title">
+            <h2>Our Renders</h2>
+            <div class="divider"></div>
+            <p>Examples of synthetic data we've generated</p>
+        </div>
+        <div style="margin-top: 100px;">
+            <h3 style="font-size: 2rem; text-align: center; margin-bottom: 50px; font-weight: 300; color: var(--text-primary);">Random <span class="highlight-text">Cars</span> Scenes</h3>
+        </div>
+        <div class="slider-container slider-cars">
+            <button class="slider-arrow slider-arrow-left">&#8592;</button>
+            <div class="slider-track">
+                <img class="slider-image" src="./final/cars/16.png" alt="Car 1">
+                <img class="slider-image" src="./final/cars/4.png" alt="Car 2">
+                <img class="slider-image" src="./final/cars/1.png" alt="Car 3">
+                <img class="slider-image" src="./final/cars/5.png" alt="Car 4">
+                <img class="slider-image" src="./final/cars/3.png" alt="Car 5">
+                <img class="slider-image" src="./final/cars/7.png" alt="Car 6">
+                <img class="slider-image" src="./final/cars/8.png" alt="Car 7">
+                <img class="slider-image" src="./final/cars/9.png" alt="Car 8">
+                <img class="slider-image" src="./final/cars/10.png" alt="Car 9">
+                <img class="slider-image" src="./final/cars/11.png" alt="Car 10">
+                <img class="slider-image" src="./final/cars/12.png" alt="Car 11">
+                <img class="slider-image" src="./final/cars/13.png" alt="Car 12">
+                <img class="slider-image" src="./final/cars/14.png" alt="Car 13">
+                <img class="slider-image" src="./final/cars/15.png" alt="Car 14">
+                <img class="slider-image" src="./final/cars/17.png" alt="Car 15">
+                <img class="slider-image" src="./final/cars/6.png" alt="Car 16">
+                <img class="slider-image" src="./final/cars/18.png" alt="Car 17">
+                <img class="slider-image" src="./final/cars/19.png" alt="Car 18">
+                <img class="slider-image" src="./final/cars/20.png" alt="Car 19">
+
+            </div>
+            <button class="slider-arrow slider-arrow-right">&#8594;</button>
+        </div>
+        <div class="slider-dots slider-dots-cars"></div>
+        </div>
+        <div class="slider-dots"></div>
+        <div style="margin-top: 100px;">
+            <h3 style="font-size: 2rem; text-align: center; margin-bottom: 50px; font-weight: 300; color: var(--text-primary);">Random <span class="highlight-text">Tank</span> Scenes</h3>
+        </div>
+            <div class="divider"></div>
+        </div>
+        <div class="slider-container slider-tanks">
+            <button class="slider-arrow slider-arrow-left">&#8592;</button>
+            <div class="slider-track">
+                <img class="slider-image" src="./final/tanks/1.png" alt="Tank 1">
+                <img class="slider-image" src="./final/tanks/2.png" alt="Tank 2">
+                <img class="slider-image" src="./final/tanks/3.png" alt="Tank 3">
+                <img class="slider-image" src="./final/tanks/4.png" alt="Tank 4">
+                <img class="slider-image" src="./final/tanks/5.png" alt="Tank 5">
+            </div>
+            <button class="slider-arrow slider-arrow-right">&#8594;</button>
+        </div>
+        <div class="slider-dots slider-dots-tanks"></div>
+
+        <div style="margin-top: 100px;">
+            <h3 style="font-size: 2rem; text-align: center; margin-bottom: 50px; font-weight: 300; color: var(--text-primary);">Contextual Urban <span class="highlight-text">Realism</span></h3>
+        </div>
+            <div class="divider"></div>
+        </div>
+        <div class="slider-container slider-bmw">
+            <button class="slider-arrow slider-arrow-left">&#8592;</button>
+            <div class="slider-track">
+                <img class="slider-image" src="./final/bmw/1.png" alt="BMW 1">
+                <img class="slider-image" src="./final/bmw/2.png" alt="BMW 2">
+                <img class="slider-image" src="./final/bmw/3.png" alt="BMW 3">
+                <img class="slider-image" src="./final/bmw/4.png" alt="BMW 4">
+                <img class="slider-image" src="./final/bmw/5.png" alt="BMW 5">
+                <img class="slider-image" src="./final/bmw/6.png" alt="BMW 6">
+                <img class="slider-image" src="./final/bmw/7.png" alt="BMW 7">
+                <img class="slider-image" src="./final/bmw/8.png" alt="BMW 8">
+
+            </div>
+            <button class="slider-arrow slider-arrow-right">&#8594;</button>
+        </div>
+        <div class="slider-dots slider-dots-bmw"></div>
+
+
+    </section>
+    
+    <section id="vision" class="section">
+        <div class="section-title">
+            <h2>Broader Impact & Vision</h2>
+            <div class="divider"></div>
+        </div>
+        
+        <div class="content-section animate-in">
+            <p>While we initially focused on edge cases, our technique is applicable to virtually any scenario that requires annotated synthetic data:</p>
+        </div>
+        
+        <ul class="styled-list animate-in">
+            <li>Supporting training for perception tasks (object detection, segmentation)</li>
+            <li>Helping to reduce costs associated with real-world data collection and labeling</li>
+            <li>Rapidly prototyping controlled environments for training ML agents</li>
+            <li>Providing extensive and rare datasets for robotics training and simulations</li>
+            <li>Generating multi-angle, labeled data under different conditions that enhances semantic understanding in transformer-based models</li>
+        </ul>
+        
+        <div class="content-section animate-in">
+            <p>Our method provides flexible and precise datasets, whether the goal is routine warehouse robot training or testing models against rare visual anomalies.</p>
+        </div>
+        
+        <h3 style="font-size: 2.2rem; text-align: center; margin: 100px 0 60px; font-weight: 300; color: var(--text-primary);">Areas Where We Might Add Value</h3>
+        
+        <div class="card-grid">
+            <div class="card animate-in">
+                <h3>1. Rapid Custom Scene Generation | Domain-Specific Dataset Packs</h3>
+                <p>Quickly prototyping highly customized and annotated scenes.</p>
+            </div>
+            <div class="card animate-in">
+                <h3>2. Edge-Case Scenario Generation (extending Omniverse Replicator cap)</h3>
+                <p>Creating scenarios involving underrepresented, rarely seen anomalies (damaged servers, broken tools, secret objects).</p>
+            </div>
+            <div class="card animate-in">
+                <h3>3. Simulation Diversity & Dataset Flexibility</h3>
+                <p>Quickly adjusting parameters like object density, lighting conditions, and scene complexity.</p>
+            </div>
+            
+        </div>
+        
+        <div class="emphasis-box animate-in">
+            <p><strong><span class="highlight-text">Vision for the future:</span></strong> We envision a future capability to rapidly generate scenes based on user-defined parameters (e.g., "1,000 fire-hazard factory scenes" or "partial shutdown data center").</p>
+        </div>
+    </section>
+    
+    <section id="team" class="section">
+        <div class="section-title">
+            <h2>Who We Are</h2>
+            <div class="divider"></div>
+        </div>
+        
+        <div class="content-section animate-in">
+            <p>We're a small team skilled in various fields - cybersecurity, robotics, coding, 3D graphics, ML, semiconductor physics, mathematics and more but with a shared mindset: <span class="highlight-text">we learn fast and we build what excites us.</span> Blender happened to be the right tool for this project, but what really drove the work was our curiosity and ability to figure things out quickly together.</p>
+            
+            <p>We've worked closely for a while now, including winning two hackathons ("corruption risk identification software", and "situational awareness software") iteratively (we first joined one for the free food - turned out we really enjoyed solving hard problems together too 😄). This project grew out of that same energy: we got curious, jumped in, and built something in a few weeks we're genuinely proud of.</p>
+            
+            <p>We also apply this mindset beyond synthetic data. For instance, we work as applied researchers in the Boston-based cybersecurity company, helping design innovative defense systems that detect and mitigate live cyberattacks.</p>
+            
+            <p><strong>Our core strength is adaptability and curiosity.</strong> Blender helped us move fast early on, but we're quick to learn new tools and shift toward what's most impactful.</p>
+        </div>
+        <div class="section-title">
+            <h2>The Team (diverse & cohesive)</h2>
+            <div class="divider"></div>
+        </div>
+        <div class="team-grid">
+            <div class="team-member animate-in">
+                <img class="team-photo" src="./final/team/pablo.jpg" alt="Ruben Amizyan">
+                <h4>Ruben Amizyan</h4>
+                <div class="role">Innovator</div>
+                <div class="expertise">ML/LLM & MCP Security</div>
+            </div>
+            <div class="team-member animate-in">
+                <img class="team-photo" src="./final/team/xorowats.jpg" alt="Martin Gambaryan">
+                <h4>Martin Gambaryan</h4>
+                <div class="role">Offensive Security Engineer</div>
+                <div class="expertise">CG & Physics</div>
+            </div>
+            <div class="team-member animate-in">
+                <img class="team-photo" src="./final/team/styop.jpg" alt="Stepan Titanyan">
+                <h4>Stepan Titanyan</h4>
+                <div class="role">Data Scientist</div>
+                <div class="expertise">Programming & CG</div>
+            </div>
+            <div class="team-member animate-in">
+                <img class="team-photo" src="./final/team/adolf.jpg" alt="Mher Saratikyan">
+                <h4>Mher Saratikyan</h4>
+                <div class="role">Linux Architect</div>
+                <div class="expertise">LLM Security & Blockchain</div>
+            </div>
+            <div class="team-member animate-in">
+                <img class="team-photo" src="./final/team/avoz.jpg" alt="Avetis Avetisyan">
+                <h4>Avetis Avetisyan</h4>
+                <div class="role">Cyber Engineer</div>
+                <div class="expertise">UI/UX & Radio Physics</div>
+            </div>
+            <div class="team-member animate-in">
+                <img class="team-photo" src="./final/team/fikus.jpg" alt="Feliks Ghandilyan">
+                <h4>Feliks Ghandilyan</h4>
+                <div class="role">Cyber Analyst</div>
+                <div class="expertise">QA & LLM Security</div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="curious" class="section">
+        <div class="section-title">
+            <h2>What We're Curious About</h2>
+            <div class="divider"></div>
+            <p>We're deeply engaged in this space, and <span class="highlight-text">we're here to ask, learn, and understand</span> how we might provide genuine value to the industry.</p>
+        </div>
+        
+    
+        <ul class="styled-list animate-in">
+            <li>How can a <span class="highlight-text">flexible dataset generation tool</span> like ours have a meaningful contribution to the current industry needs?</li>
+            <li>How valuable are <span class="highlight-text">domain-specific</span> synthetic scenes in current synthetic data generation workflows?</li>
+            <li>How are high-fidelity digital twins being used in fields like <span class="highlight-text">neuroscience, cellular simulation, or semiconductor nanotechnology</span>?</li>
+            <li>Does Omniverse benefit from <span class="highlight-text">rare, high-fidelity objects</span> that enhance scene realism?</li>
+            <li>Where do you personally see the <span class="highlight-text">next wave of simulation</span> breakthroughs happening?</li>
+            <li>What would be the most meaningful next steps to align with <span class="highlight-text">Omniverse's future direction?</span></li>
+        </ul>
+    </section>
+    
+    <section id="next" class="section">
+        <div class="section-title">
+            <h2>Our Next Steps</h2>
+            <div class="divider"></div>
+            <p>Our roadmap for advancing synthetic data generation</p>
+        </div>
+        
+        <div class="card-grid">
+            <div class="card animate-in">
+                <i class="fas fa-brain"></i>
+                <h3>1. Train on Pure Synthetic Data</h3>
+                <p>Evaluate the effectiveness of training models solely on synthetic datasets, especially for underrepresented or hard-to-capture objects. Compare the results with entirely real datasets training.</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-blender"></i>
+                <h3>2. Mixed Dataset Training</h3>
+                <p>Benchmark the best performance when synthetic data is combined with different size samples of real-world images (find the best combination ratio).</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-project-diagram"></i>
+                <h3>3. Transformer Evaluation</h3>
+                <p>Test how our multi-view, structured datasets improve performance in transformer-based detectors (e.g., DETR, DINO). We believe our datasets will be more effective using transformer-based models.</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-microchip"></i>
+                <h3>4. GPU Optimization</h3>
+                <p>Run dataset generation on Tensor Core GPU (A100) to get use of accelerated matrix multiplication (crucial point for us).</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-cubes"></i>
+                <h3>5. Domain-Specific Packs</h3>
+                <p>Create and release a high-quality dataset pack focused on a niche real-world scenario.</p>
+            </div>
+            <div class="card animate-in">
+                <i class="fas fa-sync-alt"></i>
+                <h3>6. OpenUSD Compatibility</h3>
+                <p>Explore converting our generated scenes to OpenUSD format to assess early compatibility with Omniverse and Replicator workflows.</p>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="footer-message">
+            <i class="fas fa-cube"></i>
+            All images and videos shown on this demonstative site have been generated by our tool.
+        </div>
+    </footer>
+    
+    <script>
+        // Animation on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate elements on scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('appear');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            document.querySelectorAll('.animate-in').forEach(element => {
+                observer.observe(element);
+            });
+            
+            // Header scroll effect
+            const header = document.querySelector('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    header.style.padding = '15px 5%';
+                    header.style.boxShadow = '0 5px 30px rgba(0, 0, 30, 0.7)';
+                } else {
+                    header.style.padding = '20px 5%';
+                    header.style.boxShadow = '0 5px 30px rgba(0, 0, 30, 0.5)';
+                }
+            });
+            
+            // Smooth scrolling for navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            // --- MULTI-SLIDER FUNCTIONALITY ---
+            function initSlider(sliderContainerClass, dotsClass, imagesPerView = 3, autoplayDirection = 'right') {
+                const container = document.querySelector(sliderContainerClass);
+                if (!container) return;
+                const track = container.querySelector('.slider-track');
+                const images = container.querySelectorAll('.slider-image');
+                const left = container.querySelector('.slider-arrow-left');
+                const right = container.querySelector('.slider-arrow-right');
+                const dotsContainer = document.querySelector(dotsClass);
+                const total = images.length;
+                const maxIndex = Math.max(0, total - imagesPerView);
+                let current = 0;
+                // Clear previous dots
+                if (dotsContainer) dotsContainer.innerHTML = '';
+                // Create dots for each page
+                for (let i = 0; i <= maxIndex; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
+                    dot.addEventListener('click', () => goTo(i));
+                    dotsContainer.appendChild(dot);
+                }
+                const dots = dotsContainer ? dotsContainer.querySelectorAll('.slider-dot') : [];
+                function update() {
+                    track.style.transform = `translateX(-${current * (100 / imagesPerView)}%)`;
+                    dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+                }
+                function goTo(idx) {
+                    current = idx;
+                    update();
+                }
+                left.addEventListener('click', function() {
+                    current = (current - 1 + (maxIndex + 1)) % (maxIndex + 1);
+                    update();
+                });
+                right.addEventListener('click', function() {
+                    current = (current + 1) % (maxIndex + 1);
+                    update();
+                });
+                // Autoplay
+                setInterval(function() {
+                    if (autoplayDirection === 'right') {
+                        current = (current + 1) % (maxIndex + 1);
+                    } else {
+                        current = (current - 1 + (maxIndex + 1)) % (maxIndex + 1);
+                    }
+                    update();
+                }, 3000 + Math.floor(Math.random() * 1000)); // randomize a bit to desync
+                // Optional: swipe support for mobile
+                let startX = null;
+                track.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+                track.addEventListener('touchend', e => {
+                    if (startX === null) return;
+                    const dx = e.changedTouches[0].clientX - startX;
+                    if (dx > 50) left.click();
+                    else if (dx < -50) right.click();
+                    startX = null;
+                });
+                update();
+            }
+            // Initialize all three sliders with correct directions
+            initSlider('.slider-tanks', '.slider-dots-tanks', 3, 'left');
+            initSlider('.slider-bmw', '.slider-dots-bmw', 3, 'right');
+            initSlider('.slider-cars', '.slider-dots-cars', 3, 'right');
+
+            // Hamburger menu functionality
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            navToggle.addEventListener('click', function() {
+                navLinks.classList.toggle('open');
+                navToggle.classList.toggle('open');
+            });
+            // Optional: close menu when a link is clicked (mobile UX)
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        navLinks.classList.remove('open');
+                        navToggle.classList.remove('open');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
